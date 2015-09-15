@@ -1,0 +1,23 @@
+/**
+ * 初始化函数，读入local.properties文件
+ */
+def initGradleEnvironment(){
+    println "initialize Gradle Environment ....."
+
+    Properties properties = new Properties()
+    File propertyFile = new File(rootDir.getAbsolutePath() + "/local.properties")
+    properties.load(propertyFile.newDataInputStream())
+
+    // 读出属性配置，放置到Gradle对象中
+    gradle.ext.sdkDir = properties.getProperty('sdk.dir')
+    gradle.ext.jarOutputDir = properties.getProperty('jar.outputDir')
+    gradle.ext.appOutputDir = properties.getProperty('app.outputDir')
+    gradle.ext.api = properties.getProperty('sdk.api')
+    gradle.ext.minapi = properties.getProperty('sdk.minapi')
+
+    println "initialize Gradle Environment completes..."
+}
+
+initGradleEnvironment()
+
+include ':commonadapter', ':demo'

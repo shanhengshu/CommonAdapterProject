@@ -1,0 +1,66 @@
+
+// 拷贝文件函数
+def copyFile(String srcFileName, dstFileName){
+    def srcFile = new File(srcFileName)
+    def targetFile = new File(dstFileName)
+    targetFile.withOutputStream{ os->
+        srcFile.withInputStream{ ins->
+            os << ins   //利用 OutputStream的<<操作符重载，完成从 inputstream到 OutputStream 的输出
+        }
+    }
+}
+
+// 删除文件
+def delFile(String tagetFile){
+    println "delFile tagetFile: ${tagetFile}"
+    def target = new File(tagetFile);
+    target.deleteDir();
+}
+
+def cleanOutput(boolean bJar = true){
+    if (!bJar){
+        return;
+    }
+    delFile(project.buildDir);
+}
+
+// 拷贝输出目录
+def copyOutput(boolean bJar = true){
+    if (!bJar){
+        copyFile(project.getBuildFile(), gradle.appOutputDir);
+    } else {
+        copyFile(project.getBuildFile(), gradle.jarOutputDir);
+    }
+}
+
+// 获取版本信息
+def getVersionNameAdvanced(){
+    def xmlFile = project.file("AndroidManifest.xml")
+    def rootManifest = new XmlSlurper().parse(xmlFile)
+    return rootManifest['@android:versionName']
+}
+
+// Debug无效话
+def disableDebugBuild(){
+    //project.tasks 包含了所有的 tasks，下面的 findAll 是寻找那些名字中带 debug 的 Task。
+
+    //返回值保存到 targetTasks 容器中
+    def targetTasks = project.tasks.findAll{task ->
+        task.name.contains("Debug")
+    }
+    //对满足条件的 task，设置它为 disable。如此这般，这个 Task 就不会被执行
+    targetTasks.each{
+        println "disable debug task  : ${it.name}"
+        it.setEnabled false
+    }
+}
+
+// 将函数设置为 extra 属性中去，这样，加载 utils.gradle 的 Project 就能调用此文件中定义的函数了
+ext{
+    copyFile = this.&copyFile
+    delFile = this.&delFile
+    cleanOutput = this.&cleanOutput
+    copyOutput = this.&copyOutput
+    getVersionNameAdvanced = this.&getVersionNameAdvanced
+    disableDebugBuild = this.&disableDebugBuild
+}
